@@ -27,3 +27,16 @@ test('a route with a route parameter', ({ expect, fail }) => {
     router.match(context)
   })
 })
+
+test('a route with a search parameter', ({ expect }) => {
+  const router = new Router('http://example.com')
+  const context = { name: 'Free Spirit', request: { url: '/my-bad?id=1' } }
+  return new Promise(resolve => {
+    router.add('/my-bad', (ctx, route) => {
+      expect(ctx).toBe(context)
+      expect(route.searchParams.get('id')).toBe('1')
+      resolve()
+    })
+    router.match(context)
+  })
+})

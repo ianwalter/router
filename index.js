@@ -35,7 +35,7 @@ export default class Router {
     })
 
     if (route) {
-      route.callback(ctx, route)
+      route.callback(ctx, Object.assign(url, route))
     } else {
       callback(ctx, { url, parts })
     }
