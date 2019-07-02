@@ -15,7 +15,7 @@ export default class Router {
     this.routes.push(route)
   }
 
-  match (ctx, callback) {
+  async match (ctx, callback) {
     const url = new URL(ctx.request.url, this.base)
     const parts = url.pathname.split('/').filter(part => part)
 
@@ -35,9 +35,9 @@ export default class Router {
     })
 
     if (route) {
-      route.callback(ctx, Object.assign(url, route))
+      return route.callback(ctx, { url, route })
     } else {
-      callback(ctx, { url, parts })
+      return callback(ctx, { url, parts })
     }
   }
 }
