@@ -36,7 +36,7 @@ export default class Router {
 
     if (route) {
       return route.callback(ctx, { url, route })
-    } else {
+    } else if (callback) {
       return callback(ctx, { url, parts })
     }
   }

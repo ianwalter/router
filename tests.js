@@ -74,3 +74,24 @@ test('a route with an async callback', async ({ expect }) => {
   await router.match(context)
   expect(context.name).toBe('Old Town Road')
 })
+
+test('no matching route', async ({ fail, pass }) => {
+  const router = new Router('http://example.com')
+  const context = { name: 'Free Spirit', request: { url: '/my-ba' } }
+  router.add('/my-bad', () => fail())
+  await router.match(context)
+  pass()
+})
+
+test('no matching route with callback', async ({ expect }) => {
+  const router = new Router('http://example.com')
+  const context = { name: 'Free Spirit', request: { url: '/my-ba' } }
+  return new Promise(async (resolve, reject) => {
+    router.add('/my-bad', () => reject)
+    await router.match(context, (ctx, { url }) => {
+      expect(ctx).toBe(context)
+      expect(url.href).toBe('http://example.com/my-ba')
+      resolve()
+    })
+  })
+})
