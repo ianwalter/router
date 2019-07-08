@@ -1,7 +1,7 @@
 {
   "name": "@ianwalter/router",
   "description": "A simple, fast router",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "author": "Ian Walter <public@iankwalter.com> (https://iankwalter.com)",
   "main": "dist/router.js",
   "module": "dist/router.m.js",
