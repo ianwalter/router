@@ -83,15 +83,12 @@ test('no matching route', async ({ fail, pass }) => {
   pass()
 })
 
-test('no matching route with callback', async ({ expect }) => {
+test('no matching route with callback', async ({ expect, fail }) => {
   const router = new Router('http://example.com')
   const context = { name: 'Free Spirit', request: { url: '/my-ba' } }
-  return new Promise(async (resolve, reject) => {
-    router.add('/my-bad', () => reject)
-    await router.match(context, (ctx, { url }) => {
-      expect(ctx).toBe(context)
-      expect(url.href).toBe('http://example.com/my-ba')
-      resolve()
-    })
+  router.add('/my-bad', fail)
+  await router.match(context, (ctx, { url }) => {
+    expect(ctx).toBe(context)
+    expect(url.href).toBe('http://example.com/my-ba')
   })
 })
