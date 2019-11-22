@@ -4,9 +4,9 @@ export default class Router {
     this.base = base
   }
 
-  add (path, callback) {
+  add (path, handler) {
     const parts = path.split('/').filter(part => part)
-    const route = { path, parts, params: {}, callback }
+    const route = { path, parts, params: {}, handler }
     for (const part of parts) {
       if (part.indexOf(':') === 0) {
         route.params[part.substring(1)] = undefined
@@ -15,7 +15,7 @@ export default class Router {
     this.routes.push(route)
   }
 
-  async match (ctx, callback) {
+  async match (ctx, handler) {
     const url = new URL(ctx.request.url, this.base)
     const parts = url.pathname.split('/').filter(part => part)
 
@@ -35,9 +35,9 @@ export default class Router {
     })
 
     if (route) {
-      return route.callback(ctx, { url, route })
-    } else if (callback) {
-      return callback(ctx, { url, parts })
+      return route.handler({ ...ctx, url, route })
+    } else if (handler) {
+      return handler({ ...ctx, url, route })
     }
   }
 }
