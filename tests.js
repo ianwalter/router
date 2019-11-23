@@ -40,7 +40,7 @@ test('a route with a route parameter', ({ expect, fail }) => {
     router.add('/my-bad', fail)
     router.add('/my-bad/:id', ctx => {
       expect(ctx.name).toBe(context.name)
-      expect(ctx.route.params.id).toBe('1')
+      expect(ctx.params.id).toBe('1')
       resolve()
     })
     router.match(context)
@@ -60,20 +60,21 @@ test('a route with a search parameter', ({ expect }) => {
   })
 })
 
-test('a route with an async callback', async ({ expect }) => {
+test('a route with an async middleware', async ({ expect }) => {
   const router = new Router('http://example.com')
-  const context = { name: 'Free Spirit', request: { url: '/my-bad' } }
-  router.add('/my-bad', () => {
+  const context = { request: { url: '/my-bad' } }
+  router.add('/my-bad', ctx => {
     return new Promise(resolve => setTimeout(
       () => {
-        context.name = 'Old Town Road'
+        ctx.entered = true
         resolve()
       },
-      1000
+      200
     ))
   })
-  await router.match(context)
-  expect(context.name).toBe('Old Town Road')
+  const ctx = await router.match(context)
+  expect(ctx.request).toBe(context.request)
+  expect(ctx.entered).toBe(true)
 })
 
 test('no matching route', async ({ fail, pass }) => {
@@ -84,7 +85,7 @@ test('no matching route', async ({ fail, pass }) => {
   pass()
 })
 
-test('no matching route with callback', async ({ expect, fail }) => {
+test('no matching route with fallback', async ({ expect, fail }) => {
   const router = new Router('http://example.com')
   const context = { name: 'Free Spirit', request: { url: '/my-ba' } }
   router.add('/my-bad', fail)
