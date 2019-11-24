@@ -8,7 +8,7 @@ export default class Router {
     this.base = base
   }
 
-  static getParts (path) {
+  static getParts (path = '') {
     return path.split('/').filter((part, index) => part || index === 0)
   }
 
@@ -47,9 +47,10 @@ export default class Router {
   }
 
   async match (ctx, next) {
-    ctx.url = ctx.url || new URL(ctx.request.url, this.base)
     ctx.params = ctx.params || {}
-    const parts = Router.getParts(ctx.url.pathname)
+    const hasFullUrl = ctx.fullUrl instanceof URL
+    ctx.fullUrl = hasFullUrl ? ctx.fullUrl : new URL(ctx.url, this.base)
+    const parts = Router.getParts(ctx.fullUrl.pathname)
     const lastIndex = parts.length - 1
 
     // Traverse the route tree to find the matching route.
