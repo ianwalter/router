@@ -4,93 +4,73 @@ const Router = require('.')
 test('a route', ({ expect, fail }) => {
   const router = new Router('http://example.com')
   const context = { name: 'Free Spirit', request: { url: '/my-bad' } }
-  return new Promise(resolve => {
-    router.add('/my-bad', ctx => {
-      expect(ctx.name).toBe(context.name)
-      expect(ctx.request).toBe(context.request)
-      resolve()
-    })
-    router.add('/my-bad/:id', fail)
-    router.match(context)
+  router.add('/my-bad', ctx => {
+    expect(ctx.name).toBe(context.name)
+    expect(ctx.request).toBe(context.request)
   })
+  router.add('/my-bad/:id', fail)
+  router.match(context)
 })
 
 test('a route twice', ({ expect, fail }) => {
   const router = new Router('http://example.com')
-  const context = { name: 'Free Spirit', request: { url: '/my-bad' } }
+  const context = { request: { url: '/my-bad' } }
   let count = 0
-  return new Promise(resolve => {
-    router.add('/my-bad', ctx => {
-      count++
-      if (count > 1) {
-        expect(ctx.request).toBe(context.request)
-        resolve()
-      }
-    })
-    router.add('/my-bad/:id', fail)
-    router.match(context)
-    router.match(context)
+  router.add('/my-bad', ctx => {
+    count++
+    if (count > 1) {
+      expect(ctx.request).toBe(context.request)
+    }
   })
+  router.add('/my-bad/:id', fail)
+  router.match(context)
+  router.match(context)
 })
 
 test('a route with a route parameter', ({ expect, fail }) => {
   const router = new Router('http://example.com')
-  const context = { name: 'Free Spirit', request: { url: '/my-bad/1' } }
-  return new Promise(resolve => {
-    router.add('/my-bad', fail)
-    router.add('/my-bad/:id', ctx => {
-      expect(ctx.name).toBe(context.name)
-      expect(ctx.params.id).toBe('1')
-      resolve()
-    })
-    router.match(context)
+  const context = { request: { url: '/my-bad/1' } }
+  router.add('/my-bad', fail)
+  router.add('/my-bad/:id', ctx => {
+    expect(ctx.params.id).toBe('1')
   })
+  router.match(context)
 })
 
 test('a route with a search parameter', ({ expect }) => {
   const router = new Router('http://example.com')
-  const context = { name: 'Free Spirit', request: { url: '/my-bad?id=1' } }
-  return new Promise(resolve => {
-    router.add('/my-bad', ctx => {
-      expect(ctx.request).toBe(context.request)
-      expect(ctx.url.searchParams.get('id')).toBe('1')
-      resolve()
-    })
-    router.match(context)
+  const context = { request: { url: '/my-bad?id=1' } }
+  router.add('/my-bad', ctx => {
+    expect(ctx.request).toBe(context.request)
+    expect(ctx.url.searchParams.get('id')).toBe('1')
   })
+  router.match(context)
 })
 
 test('a route with an async middleware', async ({ expect }) => {
   const router = new Router('http://example.com')
   const context = { request: { url: '/my-bad' } }
-  router.add('/my-bad', ctx => {
-    return new Promise(resolve => setTimeout(
-      () => {
-        ctx.entered = true
-        resolve()
-      },
-      200
-    ))
-  })
+  router.add('/my-bad', ctx => new Promise(resolve => setTimeout(
+    () => resolve(ctx),
+    200
+  )))
   const ctx = await router.match(context)
   expect(ctx.request).toBe(context.request)
-  expect(ctx.entered).toBe(true)
 })
 
-test('no matching route', async ({ fail, pass }) => {
+test('no matching route', ({ pass, fail }) => {
   const router = new Router('http://example.com')
-  const context = { name: 'Free Spirit', request: { url: '/my-ba' } }
-  router.add('/my-bad', () => fail())
-  await router.match(context)
-  pass()
-})
-
-test('no matching route with fallback', async ({ expect, fail }) => {
-  const router = new Router('http://example.com')
-  const context = { name: 'Free Spirit', request: { url: '/my-ba' } }
+  const context = { request: { url: '/my-ba' } }
   router.add('/my-bad', fail)
-  await router.match(context, ctx => {
-    expect(ctx.name).toBe(context.name)
-    expect(ctx.url.href).toBe('http://example.com/my-ba')
-  })
+  router.match(context)
+  router.match(context, pass)
+})
+
+test('a route with multiple middleware', ({ expect }) => {
+  const router = new Router('http://example.com')
+  const context = { request: { url: '/' } }
+  const first = (ctx, next) => (ctx.entered = true) && next()
+  const second = ctx => expect(ctx.entered).toBe(true)
+  router.add('/', first, second)
+  router.match(context)
 })
