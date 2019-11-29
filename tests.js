@@ -4,6 +4,7 @@ const Router = require('.')
 test('a route', ({ expect, fail }) => {
   const router = new Router('http://example.com')
   const context = { name: 'Free Spirit', url: '/my-bad' }
+  router.add('/', fail)
   router.add('/my-bad', ctx => {
     expect(ctx.name).toBe(context.name)
     expect(ctx.url).toBe(context.url)
@@ -22,7 +23,6 @@ test('a route twice', ({ expect, fail }) => {
       expect(ctx.url).toBe(context.url)
     }
   })
-  router.add('/my-bad/:id', fail)
   router.match(context)
   router.match(context)
 })
