@@ -42,7 +42,7 @@ test('a route with a search parameter', ({ expect }) => {
   const context = { url: '/my-bad?id=1' }
   router.add('/my-bad', ctx => {
     expect(ctx.url).toBe(context.url)
-    expect(ctx.fullUrl.searchParams.get('id')).toBe('1')
+    expect(ctx.fullUrl.search.id).toBe('1')
   })
   router.match(context)
 })

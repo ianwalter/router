@@ -1,4 +1,5 @@
 import compose from 'koa-compose'
+import Url from '@ianwalter/url'
 
 const noOp = () => {}
 
@@ -48,8 +49,7 @@ export default class Router {
 
   async match (ctx, next) {
     ctx.params = ctx.params || {}
-    const hasFullUrl = ctx.fullUrl instanceof URL
-    ctx.fullUrl = hasFullUrl ? ctx.fullUrl : new URL(ctx.url, this.base)
+    ctx.fullUrl = new Url(ctx.url, this.base)
     const parts = Router.getParts(ctx.fullUrl.pathname)
     const lastIndex = parts.length - 1
 
