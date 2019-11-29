@@ -1,4 +1,5 @@
 import compose from 'koa-compose'
+import merge from '@ianwalter/merge'
 
 const noOp = () => {}
 
@@ -47,7 +48,7 @@ export default class Router {
   }
 
   async match (ctx, next) {
-    ctx.params = ctx.params || {}
+    ctx = merge({ params: {} }, ctx)
     const hasFullUrl = ctx.fullUrl instanceof URL
     ctx.fullUrl = hasFullUrl ? ctx.fullUrl : new URL(ctx.url, this.base)
     const parts = Router.getParts(ctx.fullUrl.pathname)
