@@ -50,7 +50,7 @@ export default class Router {
   async match (ctx, next) {
     ctx.params = ctx.params || {}
     const fullUrl = new Url(ctx.url, this.base)
-    const parts = Router.getParts(ctx.fullUrl.pathname)
+    const parts = Router.getParts(fullUrl.pathname)
     const lastIndex = parts.length - 1
 
     // Traverse the route tree to find the matching route.
