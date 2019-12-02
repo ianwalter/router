@@ -1,5 +1,4 @@
 import compose from 'koa-compose'
-import Url from '@ianwalter/url'
 
 const noOp = () => {}
 
@@ -49,12 +48,12 @@ export default class Router {
 
   async match (ctx, next) {
     ctx.params = ctx.params || {}
-    ctx.fullUrl = new Url(ctx.url, this.base)
-    const parts = Router.getParts(ctx.fullUrl.pathname)
+    const fullUrl = new URL(ctx.url, this.base)
+    const parts = Router.getParts(fullUrl.pathname)
     const lastIndex = parts.length - 1
 
     // Traverse the route tree to find the matching route.
-    ctx.route = parts.reduce(
+    const route = parts.reduce(
       (acc, part, index) => {
         part = part === '' ? '$root' : part
 
@@ -80,9 +79,9 @@ export default class Router {
       this.routes
     )
 
-    if (ctx.route && ctx.route.middleware) {
+    if (route && route.middleware) {
       // If a route was found, execute it's middleware.
-      return ctx.route.middleware(ctx, next || noOp)
+      return route.middleware(ctx, next || noOp)
     } else if (next) {
       return next()
     }

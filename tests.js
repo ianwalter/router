@@ -37,16 +37,6 @@ test('a route with a route parameter', ({ expect, fail }) => {
   router.match(context)
 })
 
-test('a route with a search parameter', ({ expect }) => {
-  const router = new Router('http://example.com')
-  const context = { url: '/my-bad?id=1' }
-  router.add('/my-bad', ctx => {
-    expect(ctx.url).toBe(context.url)
-    expect(ctx.fullUrl.search.id).toBe('1')
-  })
-  router.match(context)
-})
-
 test('a route with an async middleware', async ({ expect }) => {
   const router = new Router('http://example.com')
   const context = { url: '/my-bad' }
