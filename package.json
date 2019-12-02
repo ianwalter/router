@@ -13,6 +13,9 @@
     "pretest": "dist",
     "test": "bff"
   },
+  "files": [
+    "dist"
+  ],
   "keywords": [
     "router",
     "koa"
