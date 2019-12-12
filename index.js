@@ -48,7 +48,19 @@ export default class Router {
 
   async match (ctx, next) {
     ctx.params = ctx.params || {}
-    const fullUrl = new URL(ctx.url, this.base)
+
+    // If the URL is invalid, pass it to the next function if provided,
+    // otherwise throw the error.
+    let fullUrl
+    try {
+      fullUrl = new URL(ctx.url, this.base)
+    } catch (err) {
+      if (next) {
+        return next(err)
+      }
+      throw err
+    }
+
     const parts = Router.getParts(fullUrl.pathname)
     const lastIndex = parts.length - 1
 

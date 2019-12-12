@@ -64,3 +64,10 @@ test('a route with multiple middleware', ({ expect }) => {
   router.add('/', first, second)
   router.match(context)
 })
+
+test('an invalid URL', ({ pass, fail }) => {
+  const router = new Router('http://example.com')
+  const context = { url: '//:-0' }
+  router.add('/my-bad', fail)
+  router.match(context, pass)
+})
