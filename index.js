@@ -95,7 +95,7 @@ export default class Router {
       // If a route was found, execute it's middleware.
       return route.middleware(ctx, next || noOp)
     } else if (next) {
-      return next()
+      return next(ctx)
     }
   }
 }
