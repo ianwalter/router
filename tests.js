@@ -50,7 +50,7 @@ test('a route with an async middleware', async ({ expect }) => {
 
 test('no matching route', ({ pass, fail }) => {
   const router = new Router('http://example.com')
-  const context = { url: '/my-ba' }
+  const context = { url: '/sorry/my-bad' }
   router.add('/my-bad', fail)
   router.match(context)
   router.match(context, pass)

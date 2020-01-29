@@ -65,31 +65,36 @@ export default class Router {
     const lastIndex = parts.length - 1
 
     // Traverse the route tree to find the matching route.
-    const route = parts.reduce(
-      (acc, part, index) => {
-        part = part === '' ? '$root' : part
+    let route
+    try {
+      route = parts.reduce(
+        (acc, part, index) => {
+          part = part === '' ? '$root' : part
 
-        const isLast = index === lastIndex
-        if (isLast && acc[part]) {
-          // Return the matched route.
-          return acc[part]
-        } else if (isLast && acc.$param) {
-          // Add the URL parameter value to the context and return the matched
-          // route.
-          ctx.params[acc.$param.name] = part
-          return acc.$param
-        } else if (acc[part]) {
-          // Return the tip of the branch.
-          return acc[part]
-        } else if (acc.$param) {
-          // Add the URL parameter value to the context and return the tip of
-          // the branch.
-          ctx.params[acc.$param.name] = part
-          return acc.$param
-        }
-      },
-      this.routes
-    )
+          const isLast = index === lastIndex
+          if (isLast && acc[part]) {
+            // Return the matched route.
+            return acc[part]
+          } else if (isLast && acc.$param) {
+            // Add the URL parameter value to the context and return the matched
+            // route.
+            ctx.params[acc.$param.name] = part
+            return acc.$param
+          } else if (acc[part]) {
+            // Return the tip of the branch.
+            return acc[part]
+          } else if (acc.$param) {
+            // Add the URL parameter value to the context and return the tip of
+            // the branch.
+            ctx.params[acc.$param.name] = part
+            return acc.$param
+          }
+        },
+        this.routes
+      )
+    } catch (err) {
+      // This is just to short-circuit reduce when a path is not found.
+    }
 
     if (route && route.middleware) {
       // If a route was found, execute it's middleware.
