@@ -1,7 +1,7 @@
 const { test } = require('@ianwalter/bff')
 const Router = require('.')
 
-test('a route', ({ expect, fail }) => {
+test('matching a route', ({ expect, fail }) => {
   const router = new Router('http://example.com')
   const context = { name: 'Free Spirit', url: '/my-bad' }
   router.add('/', fail)
@@ -11,6 +11,22 @@ test('a route', ({ expect, fail }) => {
   })
   router.add('/my-bad/:id', fail)
   router.match(context)
+})
+
+test('matching root and another route', ({ expect }) => {
+  const router = new Router('http://example.com')
+  const context = { name: 'What Can I Do', url: '/' }
+  const contextTwo = { name: 'GOOD:BAD', url: '/caviar' }
+  router.add('/caviar', ctx => {
+    expect(ctx.name).toBe(contextTwo.name)
+    expect(ctx.url).toBe(contextTwo.url)
+  })
+  router.add('/', ctx => {
+    expect(ctx.name).toBe(context.name)
+    expect(ctx.url).toBe(context.url)
+  })
+  router.match(context)
+  router.match(contextTwo)
 })
 
 test('a route twice', ({ expect, fail }) => {

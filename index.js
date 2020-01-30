@@ -1,4 +1,5 @@
 import compose from 'koa-compose'
+import merge from '@ianwalter/merge'
 
 const noOp = () => {}
 
@@ -8,6 +9,8 @@ export default class Router {
     this.base = base
   }
 
+  // Splits the route into an array of parts filtering out falsy/empty strings
+  // unless its first (root).
   static getParts (path = '') {
     return path.split('/').filter((part, index) => part || index === 0)
   }
@@ -16,6 +19,7 @@ export default class Router {
     // Break down the path into parts so that they can be used to inform the
     // structure of the route tree.
     const parts = Router.getParts(path)
+
     const lastIndex = parts.length - 1
     parts.reduce(
       (acc, part, index) => {
@@ -28,16 +32,14 @@ export default class Router {
           part = '$param'
         }
 
-        // If the part isn't already part of the current branch, add it with the
-        // parameter name if defined.
+        // Extend the branch with the route part.
         const isLast = index === lastIndex
-        if (!acc[part]) {
-          acc[part] = {
-            ...paramName ? { name: paramName } : {},
-            // If this is the last part of the URL, add the route data to it.
-            ...isLast ? { path, parts, middleware: compose(middleware) } : {}
-          }
+        const data = {
+          ...paramName ? { name: paramName } : {},
+          // If this is the last part of the URL, add the route data to it.
+          ...isLast ? { path, parts, middleware: compose(middleware) } : {}
         }
+        acc[part] = merge({}, acc[part], data)
 
         // Return the newly-added tip of the branch.
         return acc[part]
@@ -61,12 +63,11 @@ export default class Router {
       throw err
     }
 
-    const parts = Router.getParts(fullUrl.pathname)
-    const lastIndex = parts.length - 1
-
     // Traverse the route tree to find the matching route.
     let route
     try {
+      const parts = Router.getParts(fullUrl.pathname)
+      const lastIndex = parts.length - 1
       route = parts.reduce(
         (acc, part, index) => {
           part = part === '' ? '$root' : part
@@ -96,7 +97,7 @@ export default class Router {
       // This is just to short-circuit reduce when a path is not found.
     }
 
-    if (route && route.middleware) {
+    if (route) {
       // If a route was found, execute it's middleware.
       return route.middleware(ctx, next || noOp)
     } else if (next) {
