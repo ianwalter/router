@@ -63,42 +63,45 @@ export default class Router {
       throw err
     }
 
-    // Traverse the route tree to find the matching route.
-    let route
-    try {
-      const parts = Router.getParts(fullUrl.pathname)
-      const lastIndex = parts.length - 1
-      route = parts.reduce(
-        (acc, part, index) => {
-          part = part === '' ? '$root' : part
+    // Break down the passed route into parts so that they can be used to
+    // match the branches in the route tree.
+    const parts = Router.getParts(fullUrl.pathname)
+    const lastIndex = parts.length - 1
 
-          const isLast = index === lastIndex
-          if (isLast && acc[part]) {
-            // Return the matched route.
-            return acc[part]
-          } else if (isLast && acc.$param) {
-            // Add the URL parameter value to the context and return the matched
-            // route.
-            ctx.params[acc.$param.name] = part
-            return acc.$param
-          } else if (acc[part]) {
-            // Return the tip of the branch.
-            return acc[part]
-          } else if (acc.$param) {
-            // Add the URL parameter value to the context and return the tip of
-            // the branch.
-            ctx.params[acc.$param.name] = part
-            return acc.$param
-          }
-        },
-        this.routes
-      )
-    } catch (err) {
-      // This is just to short-circuit reduce when a path is not found.
+    let route = this.routes
+    for (let [index, part] of parts.entries()) {
+      const isLast = index === lastIndex
+
+      // If the part is an empty string, it is the root of the tree.
+      part = part === '' ? '$root' : part
+
+      if (isLast && route[part]) {
+        // Set the matched route.
+        route = route[part]
+      } else if (isLast && route.$param) {
+        // Add the URL parameter value to the context and return the matched
+        // route.
+        ctx.params[route.$param.name] = part
+
+        route = route.$param
+      } else if (route[part]) {
+        // Return the tip of the branch.
+        route = route[part]
+      } else if (route.$param) {
+        // Add the URL parameter value to the context and return the tip of
+        // the branch.
+        ctx.params[route.$param.name] = part
+
+        route = route.$param
+      } else {
+        route = false
+        break
+      }
     }
 
-    if (route) {
-      // If a route was found, execute it's middleware.
+    if (route && route.middleware) {
+      // If a route was found and has middleware (not an intermediary route),
+      // execute it's middleware.
       return route.middleware(ctx, next || noOp)
     } else if (next) {
       return next(ctx)
