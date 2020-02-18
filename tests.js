@@ -84,7 +84,26 @@ test('a route with multiple middleware', ({ expect }) => {
 
 test('an invalid URL', ({ pass, fail }) => {
   const router = new Router('http://example.com')
-  const context = { url: '//:-0' }
   router.add('/my-bad', fail)
-  router.match(context, pass)
+  router.match({ url: '//:-0' }, pass)
+})
+
+test('path-less middleware', ({ expect }) => {
+  const router = new Router('http://example.com')
+  let entered = false
+  router.add((ctx, next) => {
+    entered = true
+    return next()
+  })
+  router.match({ url: '/' }, () => expect(entered).toBe(true))
+})
+
+test('path-less middleware before route', ({ expect }) => {
+  const router = new Router('http://example.com')
+  router.add((ctx, next) => {
+    ctx.entered = true
+    return next()
+  })
+  router.add('/', (ctx, next) => expect(ctx.entered).toBe(true))
+  router.match({ url: '/' })
 })
