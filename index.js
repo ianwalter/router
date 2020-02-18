@@ -7,6 +7,7 @@ export default class Router {
   constructor (base) {
     this.routes = {}
     this.base = base
+    this.middleware = []
   }
 
   // Splits the route into an array of parts filtering out falsy/empty strings
@@ -16,36 +17,48 @@ export default class Router {
   }
 
   add (path, ...middleware) {
-    // Break down the path into parts so that they can be used to inform the
-    // structure of the route tree.
-    const parts = Router.getParts(path)
+    if (typeof path === 'function') {
+      this.middleware.push(path, ...middleware)
+      this.composedMiddleware = compose(this.middleware)
+    } else {
+      // Break down the path into parts so that they can be used to inform the
+      // structure of the route tree.
+      const parts = Router.getParts(path)
 
-    const lastIndex = parts.length - 1
-    parts.reduce(
-      (acc, part, index) => {
-        part = part === '' ? '$root' : part
+      const lastIndex = parts.length - 1
+      parts.reduce(
+        (acc, part, index) => {
+          part = part === '' ? '$root' : part
 
-        // If the part is prefaced by a colon, it's considered a URL parameter.
-        let paramName
-        if (part.indexOf(':') === 0) {
-          paramName = part.substring(1)
-          part = '$param'
-        }
+          // If the part is prefaced by a colon, it's considered a URL
+          // parameter.
+          let paramName
+          if (part.indexOf(':') === 0) {
+            paramName = part.substring(1)
+            part = '$param'
+          }
 
-        // Extend the branch with the route part.
-        const isLast = index === lastIndex
-        const data = {
-          ...paramName ? { name: paramName } : {},
-          // If this is the last part of the URL, add the route data to it.
-          ...isLast ? { path, parts, middleware: compose(middleware) } : {}
-        }
-        acc[part] = merge({}, acc[part], data)
+          // Extend the branch with the route part.
+          const isLast = index === lastIndex
+          const data = {
+            ...paramName ? { name: paramName } : {},
+            // If this is the last part of the URL, add the route data to it.
+            ...isLast
+              ? {
+                path,
+                parts,
+                middleware: compose([...this.middleware, ...middleware])
+              }
+              : {}
+          }
+          acc[part] = merge({}, acc[part], data)
 
-        // Return the newly-added tip of the branch.
-        return acc[part]
-      },
-      this.routes
-    )
+          // Return the newly-added tip of the branch.
+          return acc[part]
+        },
+        this.routes
+      )
+    }
   }
 
   async match (ctx, next) {
@@ -103,6 +116,8 @@ export default class Router {
       // If a route was found and has middleware (not an intermediary route),
       // execute it's middleware.
       return route.middleware(ctx, next || noOp)
+    } else if (this.composedMiddleware) {
+      return this.composedMiddleware(ctx, next || noOp)
     } else if (next) {
       return next(ctx)
     }
