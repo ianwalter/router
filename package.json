@@ -31,7 +31,7 @@
   "homepage": "https://github.com/ianwalter/router#readme",
   "dependencies": {
     "@ianwalter/merge": "^9.0.1",
-    "koa-compose": "^4.1.0"
+    "koa-compose": "^4.2.0"
   },
   "devDependencies": {
     "@ianwalter/bff": "^9.10.0",
